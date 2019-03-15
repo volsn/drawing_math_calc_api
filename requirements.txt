@@ -1,0 +1,4 @@
+flask
+flask-SQLAlchemy
+flask-Restful
+flask-jsonpify
