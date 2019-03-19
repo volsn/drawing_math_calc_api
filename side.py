@@ -11,7 +11,7 @@ def _check_line(line):
 
     if line['type'] == 'ridge' or line['type'] == 'ending':
 
-        if line['length_real'] != 'null' and line['length_plan'] != 'null':
+        if line['length_real'] != 'null':
             return True
         if line['angle'] != 'null':
             return True
@@ -28,10 +28,12 @@ def check_lines(lines, checked_lines):
     :return: list
     """
 
-    lines_to_be_checked = []
+    valide_lines = []
+
     for line in lines:
-        if _check_line(line) and line['id'] not in checked_lines:
-            lines_to_be_checked.append(line['id'])
+        if line['id'] not in checked_lines and _check_line(line):
+            valide_lines.append(line['id'])
+    return valide_lines
 
 
 def solve_line(line):
@@ -44,35 +46,35 @@ def solve_line(line):
 
     if line['type'] == 'ridge':
 
-        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x']) + \
-                                        math.pow(line['points'][0]['y'] - line['points'][1]['y']))
+        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
 
         if line['angle'] != 'null':
-            line['length_real'] = line['length_plan'] * math.cos(line['angle'])
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
 
             for point in line['points']:
                 if point['z'] == 'null':
-                    point['z'] = line['length_plan']  * math.tan(line['angle'])
+                    point['z'] = line['length_plan']  * math.tan(math.radians(line['angle']))
 
-        elif line['length_plan'] != 'null' and line['length_real'] != 'null':
-            line['angle'] = math.acos(line['length_real'] / line['length_plan'])
+        elif line['length_real'] != 'null':
+            line['angle'] = math.degrees(math.acos(line['length_plan'] / line['length_real']))
 
             for point in line['points']:
                 if point['z'] == 'null':
-                    point['z'] = line['length_plan']  * math.tan(line['angle'])
-        elif line['points'][0]['z'] == 'null':
+                    point['z'] = line['length_plan']  * math.tan(math.radians(line['angle']))
+        elif line['points'][0]['z'] != 'null':
 
             line['angle'] = math.atan(line['points'][0]['z'] / line['length_plan'])
-            line['length_real'] = line['length_plan'] * math.cos(line['angle'])
-        elif line['points'][1]['z'] == 'null':
+            line['length_real'] = line['length_plan'] * math.cos(math.radians(line['angle']))
+        elif line['points'][1]['z'] != 'null':
 
-            line['angle'] = math.atan(line['points'][1]['z'] / line['length_plan'])
-            line['length_real'] = line['length_plan'] * math.cos(line['angle'])
+            line['angle'] = math.degrees(math.atan(line['points'][1]['z'] / line['length_plan']))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
 
     elif line['type'] == 'cornice':
 
-        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x']) + \
-                                        math.pow(line['points'][0]['y'] - line['points'][1]['y']))
+        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y']), 2)
 
     return line
 
@@ -86,3 +88,36 @@ def find_line_crossing(line, lines):
     """
 
     pass
+
+
+
+"""
+For test purpose
+"""
+if __name__ == '__main__':
+
+    lines = []
+
+    line = {
+        'id': 23,
+        'type': 'ridge',
+        'points': [
+            {
+                'x': 10,
+                'y': 2,
+                'z': 'null'
+            },
+            {
+                'x': 13,
+                'y': 12,
+                'z': 'null'
+            }
+        ],
+        'angle': 123,
+        'length_real': 'null',
+        'length_plan': 'null',
+    }
+
+    lines.append(line)
+
+    print(check_lines(lines, []))

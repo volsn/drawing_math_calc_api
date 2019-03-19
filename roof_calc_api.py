@@ -39,18 +39,24 @@ def parse_lines(shapes):
 
             # Set values of points of the checked lines to lines that cross with it
             for point in checked_line['points']:
-
                 for line_ in lines:
-                    if line_['id'] not in checked_lines:
-                        for point_ in line_['points']:
-                            if point_['id'] == point['id']:
-                                point_ = point
+                    for point_ in line_['points']:
+                        if point_['id'] == point['id']:
+                            point_ = point
 
             del(id)
 
         lines_to_check = side.check_lines(lines, checked_lines)
 
 
+    # Set values of lines to shapes
+    for shape in shapes:
+        for line in shape['lines']:
+            line = lines[
+                extras.find_element_by_id(line['id'], lines)
+            ]
+
+    return shapes
 
 
 class Roof(Resource):
