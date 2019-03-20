@@ -1,6 +1,12 @@
 def exact_coords(lines):
 
-    pass
+    extracted_coords = {}
+
+    for line in lines:
+        for point in line['points']:
+            id = point['id']
+            if id not in extracted_coords.keys():
+                extracted_coords[id] = point
 
 
 def exact_lines(shapes):

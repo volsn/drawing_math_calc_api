@@ -44,7 +44,7 @@ def solve_line(line):
     """
 
 
-    if line['type'] == 'ridge':
+    if line['type'] == 'ridge' or line['type'] == 'ending':
 
         line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
                                         math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
@@ -64,8 +64,8 @@ def solve_line(line):
                     point['z'] = line['length_plan']  * math.tan(math.radians(line['angle']))
         elif line['points'][0]['z'] != 'null':
 
-            line['angle'] = math.atan(line['points'][0]['z'] / line['length_plan'])
-            line['length_real'] = line['length_plan'] * math.cos(math.radians(line['angle']))
+            line['angle'] = math.degrees(math.atan(line['points'][0]['z'] / line['length_plan']))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
         elif line['points'][1]['z'] != 'null':
 
             line['angle'] = math.degrees(math.atan(line['points'][1]['z'] / line['length_plan']))
@@ -75,6 +75,19 @@ def solve_line(line):
 
         line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
                                         math.pow(line['points'][0]['y'] - line['points'][1]['y']), 2)
+
+    elif line['type'] == 'technical_line':
+        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+
+        if line['points'][0]['z'] != 'null':
+
+            line['angle'] = math.degrees(math.atan(line['points'][0]['z'] / line['length_plan']))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+        elif line['points'][1]['z'] != 'null':
+
+            line['angle'] = math.degrees(math.atan(line['points'][1]['z'] / line['length_plan']))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
 
     return line
 

@@ -1,12 +1,8 @@
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
-import json
+from flask import Flask, jsonify, request
+from flask_restful import Resource, Api
 import polygon
 import side
 import extras
-
-PORT = 5002
-PARAMETER_NAME = 'test_api'
 
 
 app = Flask(__name__)
@@ -14,15 +10,27 @@ api = Api(app)
 
 
 def parse_shapes(shapes):
+    """
+    Function that parses shape array fulfilling all the data about shpape where it is possible
+    :param shapes: list
+    :return: list
+    """
+
     for shape in shapes:
-        coords = extras.exact_coords(shape['lines'])
-        shape['square'] = polygon.polygon_square(coords)
+        if polygon.is_shape_valid(shape):
+            shape['angle'] = polygon.calc_angle(shape)
+            shape['square'] = polygon.calc_square(shape, shape['angle'])
     return shapes
 
 
 def parse_lines(shapes):
+    """
+    Function that parses lines array fulfilling all the data about line where it is possible
+    :param shapes: list
+    :return: list
+    """
 
-    lines = extras.exact_lines(shapes) # a dict containing information about all the lines
+    lines = extras.exact_lines(shapes).values() # a dict containing information about all the lines
     lines_to_check = [] # list of lines that are about to be solved
     checked_lines = [] # list of lines that are already solved
 
@@ -59,10 +67,19 @@ def parse_lines(shapes):
     return shapes
 
 
-class Roof(Resource):
-    def get(self):
+class Index(Resource):
+    def post(self):
 
-        parser = reqparse.RequestParser()
-        parser.add_argument(PARAMETER_NAME, required=True, location='json')
-        args = parser.parse_args()
-        data = json.loads(args[PARAMETER_NAME])
+        json = request.get_json()
+        json['lines'] = parse_lines(json['shapes'])
+        json['shapes'] = parse_shapes(json['shapes'])
+        return jsonify(json)
+
+    def get(self):
+        return jsonify({'message': 'Hello, world!'})
+
+
+api.add_resource(Index, '/')
+
+if __name__ == '__main__':
+    app.run(debug=True)
