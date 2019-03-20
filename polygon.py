@@ -5,6 +5,11 @@ import math
 
 
 def is_shape_valid(shape):
+    """
+    Checks whether the given shape can be solved
+    :param shape: dict
+    :return: bool
+    """
 
     for line in shape['lines']:
         if line['type'] == 'ridge' or line['type'] == 'ending':
@@ -14,6 +19,11 @@ def is_shape_valid(shape):
 
 
 def calc_angle(shape):
+    """
+    Calculates angle between the given shape and horizontal plane
+    :param shape: dict
+    :return: int
+    """
 
     lines = list(extras.exact_lines_from_single_shape(shape).values())
 
@@ -56,11 +66,13 @@ def calc_angle(shape):
     return line['angle']
 
 
-def _polygon_plan_square(coords):
-    pass
-
-
 def calc_square(shape, angle):
+    """
+    Calculates square of the given shape
+    :param shape: dict
+    :param angle: int
+    :return: int
+    """
 
     lines = list(extras.exact_lines_from_single_shape(shape).values())
     points = list(extras.exact_coords(lines).values())
@@ -84,82 +96,3 @@ def calc_square(shape, angle):
     real_square = plan_square * math.cos(math.radians(angle))
 
     return real_square
-
-
-"""
-For test purpose
-"""
-
-if __name__ == '__main__':
-
-    line1 = {
-        'id': 1,
-        'angle': 'null',
-        'points': [
-            {
-                'id': 1,
-                'x': 1,
-                'y': 5,
-                'z': 'null',
-            },
-            {
-                'id': 2,
-                'x': 1,
-                'y': 3,
-                'z': 'null',
-            },
-        ],
-        'type': 'base',
-        'length_plan': 'null',
-        'length_real': 'null',
-    }
-    line2 = {
-        'id': 2,
-        'angle': 'null',
-        'points': [
-            {
-                'id': 1,
-                'x': 1,
-                'y': 5,
-                'z': 'null',
-            },
-            {
-                'id': 3,
-                'x': 3,
-                'y': 7,
-                'z': 4,
-            },
-        ],
-        'type': 'ridge',
-        'length_plan': 'null',
-        'length_real': 'null',
-    }
-    line3 = {
-        'id': 3,
-        'angle': 'null',
-        'points': [
-            {
-                'id': 2,
-                'x': 1,
-                'y': 3,
-                'z': 'null',
-            },
-            {
-                'id': 3,
-                'x': 3,
-                'y': 7,
-                'z': 4,
-            },
-        ],
-        'type': 'ridge',
-        'length_plan': 'null',
-        'length_real': 'null',
-    }
-
-    shape = {
-        'lines': [
-            line1,
-            line2,
-            line3,
-        ],
-    }
