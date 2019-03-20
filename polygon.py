@@ -15,9 +15,9 @@ def is_shape_valid(shape):
 
 def calc_angle(shape):
 
-    lines = extras.exact_lines(shape)
+    lines = list(extras.exact_lines_from_single_shape(shape).values())
 
-    for line in lines.values():
+    for line in lines:
         if line['type'] == 'ridge' or line['type'] == 'ending':
             for point in line['points']:
                 if point['z'] != 'null':
@@ -62,8 +62,14 @@ def _polygon_plan_square(coords):
 
 def calc_square(shape, angle):
 
-    lines = extras.exact_lines(shape)
-    coords = extras.exact_coords(lines)
+    lines = list(extras.exact_lines_from_single_shape(shape).values())
+    points = list(extras.exact_coords(lines).values())
+
+    coords = []
+    for point in points:
+        x = point['x']
+        y = point['y']
+        coords.append(tuple([x, y]))
 
     n = len(coords)
     plan_square = 0.0
@@ -83,18 +89,77 @@ def calc_square(shape, angle):
 """
 For test purpose
 """
+
 if __name__ == '__main__':
 
-    shape = {}
+    line1 = {
+        'id': 1,
+        'angle': 'null',
+        'points': [
+            {
+                'id': 1,
+                'x': 1,
+                'y': 5,
+                'z': 'null',
+            },
+            {
+                'id': 2,
+                'x': 1,
+                'y': 3,
+                'z': 'null',
+            },
+        ],
+        'type': 'base',
+        'length_plan': 'null',
+        'length_real': 'null',
+    }
+    line2 = {
+        'id': 2,
+        'angle': 'null',
+        'points': [
+            {
+                'id': 1,
+                'x': 1,
+                'y': 5,
+                'z': 'null',
+            },
+            {
+                'id': 3,
+                'x': 3,
+                'y': 7,
+                'z': 4,
+            },
+        ],
+        'type': 'ridge',
+        'length_plan': 'null',
+        'length_real': 'null',
+    }
+    line3 = {
+        'id': 3,
+        'angle': 'null',
+        'points': [
+            {
+                'id': 2,
+                'x': 1,
+                'y': 3,
+                'z': 'null',
+            },
+            {
+                'id': 3,
+                'x': 3,
+                'y': 7,
+                'z': 4,
+            },
+        ],
+        'type': 'ridge',
+        'length_plan': 'null',
+        'length_real': 'null',
+    }
 
-    shape['lines'] = []
-
-    for _ in range(2):
-        line = {}
-        for _ in range(3):
-            line['x'] = float(input())
-            line['y'] = float(input())
-            line['z'] = float(input())
-
-
-
+    shape = {
+        'lines': [
+            line1,
+            line2,
+            line3,
+        ],
+    }

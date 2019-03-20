@@ -8,6 +8,8 @@ def exact_coords(lines):
             if id not in extracted_coords.keys():
                 extracted_coords[id] = point
 
+    return extracted_coords
+
 
 def exact_lines(shapes):
 
@@ -22,7 +24,19 @@ def exact_lines(shapes):
     return extracted_lines
 
 
-def find_element_by_id(elements, id):
+def exact_lines_from_single_shape(shape):
+
+    extracted_lines = {}
+
+    for line in shape['lines']:
+        id = line['id']
+        if id not in extracted_lines.keys():
+            extracted_lines[id] = line
+
+    return extracted_lines
+
+
+def find_element_by_id(id, elements):
 
     i = 0
     for element in elements:

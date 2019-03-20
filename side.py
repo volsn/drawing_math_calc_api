@@ -43,7 +43,6 @@ def solve_line(line):
     :return: dict
     """
 
-
     if line['type'] == 'ridge' or line['type'] == 'ending':
 
         line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
@@ -70,6 +69,13 @@ def solve_line(line):
 
             line['angle'] = math.degrees(math.atan(line['points'][1]['z'] / line['length_plan']))
             line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+
+    elif line['type'] == 'base':
+
+        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+
+        line['length_real'] = line['length_plan']
 
     elif line['type'] == 'cornice':
 
@@ -112,23 +118,25 @@ if __name__ == '__main__':
     lines = []
 
     line = {
-        'id': 23,
-        'type': 'ridge',
+        'id': 2,
+        'angle': 'null',
         'points': [
             {
-                'x': 10,
-                'y': 2,
-                'z': 'null'
+                'id': 3,
+                'x': 1,
+                'y': 5,
+                'z': 'null',
             },
             {
-                'x': 13,
-                'y': 12,
-                'z': 'null'
-            }
+                'id': 4,
+                'x': 3,
+                'y': 7,
+                'z': 4,
+            },
         ],
-        'angle': 123,
-        'length_real': 'null',
+        'type': 'ridge',
         'length_plan': 'null',
+        'length_real': 'null',
     }
 
     lines.append(line)

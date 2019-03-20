@@ -30,16 +30,16 @@ def parse_lines(shapes):
     :return: list
     """
 
-    lines = extras.exact_lines(shapes).values() # a dict containing information about all the lines
+    lines = list(extras.exact_lines(shapes).values()) # a dict containing information about all the lines
     lines_to_check = [] # list of lines that are about to be solved
     checked_lines = [] # list of lines that are already solved
 
     lines_to_check = side.check_lines(lines, checked_lines)
 
-    while lines_to_check is not []:
+    while len(lines_to_check) != 0:
 
         for id in lines_to_check:
-            i = extras.find_element_by_id(lines, id)
+            i = extras.find_element_by_id(id, lines)
             checked_line = side.solve_line(lines[i])
             checked_lines.append(id)
 
@@ -55,7 +55,6 @@ def parse_lines(shapes):
             del(id)
 
         lines_to_check = side.check_lines(lines, checked_lines)
-
 
     # Set values of lines to shapes
     for shape in shapes:
