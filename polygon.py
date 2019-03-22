@@ -11,11 +11,12 @@ def is_shape_valid(shape):
     :return: bool
     """
 
+    lines_types = {}
+
     for line in shape['lines']:
-        if line['type'] == 'ridge' or line['type'] == 'ending':
-            if not side._check_line(line):
-                return False
-    return True
+        if not side._check_line(line):
+            return False
+        return True
 
 
 def calc_angle(shape):
@@ -27,34 +28,45 @@ def calc_angle(shape):
 
     lines = list(extras.exact_lines_from_single_shape(shape).values())
 
+    roof_coord = None
     for line in lines:
-        if line['type'] == 'ridge' or line['type'] == 'ending':
+        if line['type'] == 'skate' or line['type'] == 'endova':
             for point in line['points']:
-                if point['z'] != 'null':
-                    roof_line_coords = point
-                else:
-                    base_line_coords = point
+                if point['z'] is not None:
+                    roof_coord = point
+                    roof_line_coords = line['points']
+
+    if roof_coord is None:
+        return 0
+
+    for line in lines:
+        if line['type'] == 'cornice':
+            for point in line['points']:
+                if point['id'] == roof_line_coords[0]['id'] or \
+                        point['id'] == roof_line_coords[1]['id']:
+
+                    base_coord = point
 
     height_coords = {
-        'x': base_line_coords['x'],
-        'y': roof_line_coords['y'],
+        'x': base_coord['x'],
+        'y': roof_coord['y'],
         'z': 0,
     }
 
-    deltaY = roof_line_coords['y'] - height_coords['y']
-    deltaX = roof_line_coords['x'] - height_coords['x']
-    angle_to_x_axis = math.atan2(deltaY, deltaX) * 180 / math.pi
+    deltaY = roof_coord['y'] - base_coord['y']
+    deltaX = roof_coord['x'] - base_coord['x']
+    angle_to_x_axis = math.degrees(math.atan2(deltaY, deltaX))
 
     height_coords['x'] = height_coords['x'] * math.cos(angle_to_x_axis) - \
-                    height_coords['y'] * math.sin(angle_to_x_axis)
+                    height_coords['y'] * math.sin(math.radians(angle_to_x_axis))
     height_coords['y'] = height_coords['x'] * math.sin(angle_to_x_axis) + \
-                    height_coords['y'] * math.cos(angle_to_x_axis)
+                    height_coords['y'] * math.cos(math.radians(angle_to_x_axis))
 
 
     line = {
         'angle': 'null',
         'points':[
-            roof_line_coords,
+            roof_coord,
             height_coords,
         ],
         'type': 'technical_line',
@@ -93,6 +105,9 @@ def calc_square(shape, angle):
         plan_square -= coords[j][0] * coords[i][1]
 
     plan_square = abs(plan_square) / 2.0
-    real_square = plan_square * math.cos(math.radians(angle))
 
-    return real_square
+    if angle == 0:
+        return plan_square
+    else:
+        real_square = plan_square * math.cos(math.radians(angle))
+        return real_square

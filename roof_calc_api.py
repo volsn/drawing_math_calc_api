@@ -4,6 +4,8 @@ import polygon
 import side
 import extras
 
+import pprint
+PP = pprint.PrettyPrinter(indent=2)
 
 app = Flask(__name__)
 api = Api(app)
@@ -38,6 +40,7 @@ def parse_lines(shapes):
 
     while len(lines_to_check) != 0:
 
+
         for id in lines_to_check:
             i = extras.find_element_by_id(id, lines)
             checked_line = side.solve_line(lines[i])
@@ -45,33 +48,42 @@ def parse_lines(shapes):
 
             lines[i] = checked_line
 
-            # Set values of points of the checked lines to lines that cross with it
-            for point in checked_line['points']:
-                for line_ in lines:
-                    for point_ in line_['points']:
-                        if point_['id'] == point['id']:
-                            point_ = point
+            # Set values of points of the checke lines to lines that cross with it
+            for line in lines:
+                if line['id'] not in checked_lines:
+                    if checked_line['points'][0]['z'] is not None:
+                        if line['points'][0]['id'] == checked_line['points'][0]['id']:
+                            line['points'][0] = checked_line['points'][0]
+                        if line['points'][1]['id'] == checked_line['points'][0]['id']:
+                            line['points'][1] = checked_line['points'][0]
+                    if checked_line['points'][1]['z'] is not None:
+                        if line['points'][0]['id'] == checked_line['points'][1]['id']:
+                            line['points'][0] = checked_line['points'][1]
+                        if line['points'][1]['id'] == checked_line['points'][1]['id']:
+                            line['points'][1] = checked_line['points'][1]
 
-            del(id)
 
         lines_to_check = side.check_lines(lines, checked_lines)
 
     # Set values of lines to shapes
     for shape in shapes:
+        answer = []
         for line in shape['lines']:
-            line = lines[
+            answer.append(lines[
                 extras.find_element_by_id(line['id'], lines)
-            ]
+            ])
+
+        shape['lines'] = answer
 
     return shapes
 
 
 class Index(Resource):
     def post(self):
-
-        json = request.get_json()
-        json['lines'] = parse_lines(json['shapes'])
-        json['shapes'] = parse_shapes(json['shapes'])
+        json = request.json
+        json = json[0]
+        json['shapes'] = parse_lines(json['shapes'])
+        json = parse_shapes(json['shapes'])
         return jsonify(json)
 
     def get(self):
