@@ -95,16 +95,13 @@ def calc_square(shape, angle):
         y = point['y']
         coords.append(tuple([x, y]))
 
-    n = len(coords)
-    plan_square = 0.0
+    nbCoordinates = len(coords)
+    nbSegment = nbCoordinates - 1
 
-    for i in range(n):
+    plan_square = [(coords[i + 1][0] - coords[i][0]) * (coords[i + 1][1] + coords[i][1]) for i
+         in range(nbSegment)]
 
-        j = (i + 1) % n
-        plan_square += coords[i][0] * coords[j][1]
-        plan_square -= coords[j][0] * coords[i][1]
-
-    plan_square = abs(plan_square) / 2.0
+    plan_square = abs(sum(plan_square) / 2.)
 
     if angle == 0:
         return plan_square
