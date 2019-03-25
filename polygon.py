@@ -3,7 +3,6 @@ import side
 import extras
 import math
 
-
 def is_shape_valid(shape):
     """
     Checks whether the given shape can be solved
@@ -19,63 +18,92 @@ def is_shape_valid(shape):
         return True
 
 
+def _build_plane_equation(points):
+
+    points_ = []
+    i = 0
+    for point in points:
+        points_.append([])
+        points_[i].append(point['x'])
+        points_[i].append(point['y'])
+        points_[i].append(point['z'])
+        i += 1
+    points = points_
+
+
+    C = [None] * 3
+
+    # Finding coords of two vectors on the plane
+    vectorAB = [None] * 3
+    vectorAC = [None] * 3
+
+    for coord in range(3):
+        vectorAB[coord] = points[1][coord] - points[0][coord]
+        vectorAC[coord] = points[2][coord] - points[0][coord]
+        C[coord] = points[2][coord]
+
+
+    # Looking for the normal
+    normal = [None] * 3
+    normal[0] = vectorAB[1] * vectorAC[2] - vectorAB[2] * vectorAC[1]
+    normal[1] = vectorAB[2] * vectorAC[0] - vectorAB[0] * vectorAC[2]
+    normal[2] = vectorAB[0] * vectorAC[1] - vectorAB[1] * vectorAC[0]
+
+
+    # Building the final plane equation
+    equation = [None] * 4
+    equation[0] = normal[0]
+    equation[1] = normal[1]
+    equation[2] = normal[2]
+    equation[3] = -1 * normal[0] * C[0] + -1 * normal[1] * C[1] + \
+                  -1 * normal[2] * C[2]
+
+    return equation
+
+
+
 def calc_angle(shape):
-    """
-    Calculates angle between the given shape and horizontal plane
-    :param shape: dict
-    :return: int
-    """
 
+    # Extracting three points A, B and C from a plane
+    # in order to build the plane`s formula
     lines = list(extras.exact_lines_from_single_shape(shape).values())
+    points = list(extras.exact_coords(lines).values())
 
-    roof_coord = None
-    for line in lines:
-        if line['type'] == 'skate' or line['type'] == 'endova':
-            for point in line['points']:
-                if point['z'] is not None:
-                    roof_coord = point
-                    roof_line_coords = line['points']
+    plane_coords = []
+    for point in points:
+        if point['z'] is not None and point['z'] != 0:
+            plane_coords.append(point.copy())
+            break
 
-    if roof_coord is None:
+    if plane_coords == []:
         return 0
 
-    for line in lines:
-        if line['type'] == 'cornice':
-            for point in line['points']:
-                if point['id'] == roof_line_coords[0]['id'] or \
-                        point['id'] == roof_line_coords[1]['id']:
+    for point in points:
+        if point['z'] is None or point['z'] == 0:
+            point['z'] = 0
+            plane_coords.append(point.copy())
+        if len(plane_coords) == 3:
+            break
 
-                    base_coord = point
+    plane_equation = _build_plane_equation(plane_coords)
 
-    height_coords = {
-        'x': base_coord['x'],
-        'y': roof_coord['y'],
-        'z': 0,
-    }
+    plane_coords[0]['z'] = 0
+    vertical_plane_equatione = _build_plane_equation(plane_coords)
 
-    deltaY = roof_coord['y'] - base_coord['y']
-    deltaX = roof_coord['x'] - base_coord['x']
-    angle_to_x_axis = math.degrees(math.atan2(deltaY, deltaX))
+    angle = math.degrees(math.acos(
+            abs(plane_equation[0] * vertical_plane_equatione[0] + \
+                 plane_equation[1] * vertical_plane_equatione[1] + \
+                 plane_equation[2] * vertical_plane_equatione[2]) / \
+            math.sqrt(
+                (math.pow(plane_equation[0], 2) + \
+                    math.pow(plane_equation[1], 2) + \
+                    math.pow(plane_equation[2], 2)) * \
+                (math.pow(vertical_plane_equatione[0], 2) + \
+                    math.pow(vertical_plane_equatione[1], 2) + \
+                    math.pow(vertical_plane_equatione[2], 2))
+        )))
 
-    height_coords['x'] = height_coords['x'] * math.cos(angle_to_x_axis) - \
-                    height_coords['y'] * math.sin(math.radians(angle_to_x_axis))
-    height_coords['y'] = height_coords['x'] * math.sin(angle_to_x_axis) + \
-                    height_coords['y'] * math.cos(math.radians(angle_to_x_axis))
-
-
-    line = {
-        'angle': 'null',
-        'points':[
-            roof_coord,
-            height_coords,
-        ],
-        'type': 'technical_line',
-        'length_plan': 'null',
-        'length_real': 'null',
-    }
-    line = side.solve_line(line)
-
-    return line['angle']
+    return angle
 
 
 def calc_square(shape, angle):
@@ -108,3 +136,13 @@ def calc_square(shape, angle):
     else:
         real_square = plan_square * math.cos(math.radians(angle))
         return real_square
+
+
+if __name__ == '__main__':
+
+    plane1 = [-400, -64200, -37105, 22533600]
+    plane2 = [0, 0, -37105, 0]
+
+
+
+    plane = _build_plane_equation(points)

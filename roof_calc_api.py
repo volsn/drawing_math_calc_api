@@ -51,12 +51,12 @@ def parse_lines(shapes):
             # Set values of points of the checke lines to lines that cross with it
             for line in lines:
                 if line['id'] not in checked_lines:
-                    if checked_line['points'][0]['z'] is not None:
+                    if checked_line['points'][0]['z'] is not None and checked_line['points'][0]['z'] != 0:
                         if line['points'][0]['id'] == checked_line['points'][0]['id']:
                             line['points'][0] = checked_line['points'][0]
                         if line['points'][1]['id'] == checked_line['points'][0]['id']:
                             line['points'][1] = checked_line['points'][0]
-                    if checked_line['points'][1]['z'] is not None:
+                    if checked_line['points'][1]['z'] is not None and checked_line['points'][1]['z'] != 0:
                         if line['points'][0]['id'] == checked_line['points'][1]['id']:
                             line['points'][0] = checked_line['points'][1]
                         if line['points'][1]['id'] == checked_line['points'][1]['id']:
