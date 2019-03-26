@@ -40,6 +40,17 @@ def parse_lines(shapes):
 
     while len(lines_to_check) != 0:
 
+        lines_to_check_ = []
+        for id in lines_to_check:
+            i = extras.find_element_by_id(id, lines)
+            if lines[i]['type'] == 'cornice':
+                lines_to_check_.insert(0, lines[i]['id'])
+        for id in lines_to_check:
+            i = extras.find_element_by_id(id, lines)
+            if lines[i]['type'] != 'cornice':
+                lines_to_check_.append(lines[i]['id'])
+        lines_to_check = lines_to_check_
+
 
         for id in lines_to_check:
             i = extras.find_element_by_id(id, lines)
@@ -48,7 +59,7 @@ def parse_lines(shapes):
 
             lines[i] = checked_line
 
-            # Set values of points of the checke lines to lines that cross with it
+            # Set values of points of checked lines to lines that cross with it
             for line in lines:
                 if line['id'] not in checked_lines:
                     if checked_line['points'][0]['z'] is not None and checked_line['points'][0]['z'] != 0:
@@ -81,9 +92,8 @@ def parse_lines(shapes):
 class Index(Resource):
     def post(self):
         json = request.json
-        json = json[0]
         json['shapes'] = parse_lines(json['shapes'])
-        json = parse_shapes(json['shapes'])
+        #json['shapes'] = parse_shapes(json['shapes'])
         return jsonify(json)
 
     def get(self):

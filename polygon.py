@@ -3,6 +3,7 @@ import side
 import extras
 import math
 
+
 def is_shape_valid(shape):
     """
     Checks whether the given shape can be solved
@@ -29,7 +30,6 @@ def _build_plane_equation(points):
         points_[i].append(point['z'])
         i += 1
     points = points_
-
 
     C = [None] * 3
 
