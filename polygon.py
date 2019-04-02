@@ -79,7 +79,7 @@ def calc_angle(shape):
         return 0
 
     for point in points:
-        if point['z'] is None or point['z'] == 0:
+        if point['z'] is None:
             point['z'] = 0
             plane_coords.append(point.copy())
         if len(plane_coords) == 3:

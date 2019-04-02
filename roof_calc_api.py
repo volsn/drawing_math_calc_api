@@ -3,6 +3,7 @@ from flask_restful import Resource, Api
 import polygon
 import side
 import extras
+import copy
 
 import pprint
 PP = pprint.PrettyPrinter(indent=2)
@@ -20,8 +21,9 @@ def parse_shapes(shapes):
 
     for shape in shapes:
         if polygon.is_shape_valid(shape):
-            shape['angle'] = polygon.calc_angle(shape)
-            shape['square'] = polygon.calc_square(shape, shape['angle'])
+            pass
+            #shape['angle'] = polygon.calc_angle(shape)
+            #shape['square'] = polygon.calc_square(shape, shape['angle'])
 
     return shapes
 
@@ -106,10 +108,8 @@ def parse_lines(shapes):
 
 def calc_real_length(shapes_orig, shapes_solved):
 
-    print(shapes_orig)
-
     lines_orig = list(extras.exact_lines(shapes_orig).values())
-    lines_solved = list(extras.exact_lines_from_single_shape(shapes_solved).values())
+    lines_solved = list(extras.exact_lines(shapes_solved).values())
 
     koefficient = 1
     for line in lines_orig:
@@ -120,8 +120,7 @@ def calc_real_length(shapes_orig, shapes_solved):
         elif line['length_plan'] is not None:
             id = line['id']
             line_num = extras.find_element_by_id(id, lines_solved)
-            koefficient = line['length_real'] / lines_solved[line_num]['length_real']
-
+            koefficient = line['length_plan'] / lines_solved[line_num]['length_plan']
 
     for line in lines_solved:
         line['length_real'] *= koefficient
@@ -143,9 +142,10 @@ def calc_real_length(shapes_orig, shapes_solved):
 class Index(Resource):
     def post(self):
         json = request.json
-        original = json
+        original = copy.deepcopy(json['shapes'])
         json['shapes'] = parse_lines(json['shapes'])
         json['shapes'] = parse_shapes(json['shapes'])
+        json['shapes'] = calc_real_length(original, json['shapes'])
         return jsonify(json)
 
     def get(self):
