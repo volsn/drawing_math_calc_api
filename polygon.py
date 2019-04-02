@@ -143,6 +143,4 @@ if __name__ == '__main__':
     plane1 = [-400, -64200, -37105, 22533600]
     plane2 = [0, 0, -37105, 0]
 
-
-
     plane = _build_plane_equation(points)

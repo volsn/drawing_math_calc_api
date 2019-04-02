@@ -23,7 +23,7 @@ def _check_line(line):
 
     elif line['type'] == 'cornice':
         for point in line['points']:
-            if point['z'] is not None and point['z'] != 0:
+            if point['z'] is not None:
                 return True
 
     elif line['type'] == 'edge':
@@ -85,7 +85,7 @@ def solve_line(line):
 
 
         elif line['length_real'] is not None:
-            line['angle'] = math.degrees(math.acos(line['length_plan'] / line['length_real']))
+            line['angle'] = abs(math.degrees(math.acos(line['length_plan'] / line['length_real'])))
 
             for point in line['points']:
                 if point['z'] is not None:
@@ -94,13 +94,13 @@ def solve_line(line):
                     point['z'] = 0
         elif line['points'][0]['z'] is not None:
 
-            line['angle'] = math.degrees(math.atan((line['points'][0]['z'] - line['points'][1]['z']) / line['length_plan']))
+            line['angle'] = abs(math.degrees(math.atan((line['points'][0]['z'] - line['points'][1]['z']) / line['length_plan'])))
             line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
         elif line['points'][0]['z'] is None:
             line['points'][0]['z'] = 0
         elif line['points'][1]['z'] is not None:
 
-            line['angle'] = math.degrees(math.atan((line['points'][1]['z'] - line['points'][0]['z']) / line['length_plan']))
+            line['angle'] = abs(math.degrees(math.atan((line['points'][1]['z'] - line['points'][0]['z']) / line['length_plan'])))
             line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
         elif line['points'][1]['z'] is None:
             line['points'][1]['z'] = 0

@@ -38,3 +38,4 @@ def parse_lines(shapes):
 For test purpose
 """
 if __name__ == '__main__':
+    pass

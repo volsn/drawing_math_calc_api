@@ -22,6 +22,7 @@ def parse_shapes(shapes):
         if polygon.is_shape_valid(shape):
             shape['angle'] = polygon.calc_angle(shape)
             shape['square'] = polygon.calc_square(shape, shape['angle'])
+
     return shapes
 
 
@@ -37,6 +38,20 @@ def parse_lines(shapes):
     checked_lines = [] # list of lines that are already solved
 
     lines_to_check = side.check_lines(lines, checked_lines)
+
+    has_cornice_z = False
+    for id in lines_to_check:
+        i = extras.find_element_by_id(id, lines)
+        if lines[i]['type'] == 'cornice':
+            has_cornice_z = True
+
+    if not has_cornice_z:
+        for line in lines:
+            if line['type'] == 'cornice':
+                for point in line['points']:
+                    point['z'] = 0
+        lines_to_check = side.check_lines(lines, checked_lines)
+
 
     while len(lines_to_check) != 0:
 
@@ -62,12 +77,12 @@ def parse_lines(shapes):
             # Set values of points of checked lines to lines that cross with it
             for line in lines:
                 if line['id'] not in checked_lines:
-                    if checked_line['points'][0]['z'] is not None and checked_line['points'][0]['z'] != 0:
+                    if checked_line['points'][0]['z'] is not None:
                         if line['points'][0]['id'] == checked_line['points'][0]['id']:
                             line['points'][0] = checked_line['points'][0]
                         if line['points'][1]['id'] == checked_line['points'][0]['id']:
                             line['points'][1] = checked_line['points'][0]
-                    if checked_line['points'][1]['z'] is not None and checked_line['points'][1]['z'] != 0:
+                    if checked_line['points'][1]['z'] is not None:
                         if line['points'][0]['id'] == checked_line['points'][1]['id']:
                             line['points'][0] = checked_line['points'][1]
                         if line['points'][1]['id'] == checked_line['points'][1]['id']:
@@ -89,11 +104,48 @@ def parse_lines(shapes):
     return shapes
 
 
+def calc_real_length(shapes_orig, shapes_solved):
+
+    print(shapes_orig)
+
+    lines_orig = list(extras.exact_lines(shapes_orig).values())
+    lines_solved = list(extras.exact_lines_from_single_shape(shapes_solved).values())
+
+    koefficient = 1
+    for line in lines_orig:
+        if line['length_real'] is not None:
+            id = line['id']
+            line_num = extras.find_element_by_id(id, lines_solved)
+            koefficient = line['length_real'] / lines_solved[line_num]['length_real']
+        elif line['length_plan'] is not None:
+            id = line['id']
+            line_num = extras.find_element_by_id(id, lines_solved)
+            koefficient = line['length_real'] / lines_solved[line_num]['length_real']
+
+
+    for line in lines_solved:
+        line['length_real'] *= koefficient
+        line['length_plan'] *= koefficient
+
+
+    for shape in shapes_solved:
+        answer = []
+        for line in shape['lines']:
+            answer.append(lines_solved[
+                extras.find_element_by_id(line['id'], lines_solved)
+            ])
+
+        shape['lines'] = answer
+
+    return shapes_solved
+
+
 class Index(Resource):
     def post(self):
         json = request.json
+        original = json
         json['shapes'] = parse_lines(json['shapes'])
-        #json['shapes'] = parse_shapes(json['shapes'])
+        json['shapes'] = parse_shapes(json['shapes'])
         return jsonify(json)
 
     def get(self):
