@@ -66,41 +66,45 @@ def calc_angle(shape):
 
     # Extracting three points A, B and C from a plane
     # in order to build the plane`s formula
-    lines = list(extras.exact_lines_from_single_shape(shape).values())
-    points = list(extras.exact_coords(lines).values())
+    lines = list(extras.exact_lines_from_single_shape(shape.copy()).values())
 
     plane_coords = []
-    for point in points:
-        if point['z'] is not None and point['z'] != 0:
-            plane_coords.append(point.copy())
+
+    for line in lines:
+        if line['type'] == 'cornice':
+            plane_coords.append(line['points'][0])
+            plane_coords.append(line['points'][1])
             break
 
-    if plane_coords == []:
-        return 0
+    for line in lines:
+        if line['type'] == 'skate':
+            print(line['points'][0]['z'], line['points'][1]['z'])
+            if line['points'][0]['z'] > line['points'][1]['z']:
+                print('bar')
+                plane_coords.append(line['points'][0])
+            else:
 
-    for point in points:
-        if point['z'] is None:
-            point['z'] = 0
-            plane_coords.append(point.copy())
-        if len(plane_coords) == 3:
+
+                plane_coords.append(line['points'][1])
             break
 
     plane_equation = _build_plane_equation(plane_coords)
 
-    plane_coords[0]['z'] = 0
-    vertical_plane_equatione = _build_plane_equation(plane_coords)
+    plane_coords[2]['z'] = 0
+    vertical_plane_equation = _build_plane_equation(plane_coords)
+    print(plane_coords)
 
     angle = math.degrees(math.acos(
-            abs(plane_equation[0] * vertical_plane_equatione[0] + \
-                 plane_equation[1] * vertical_plane_equatione[1] + \
-                 plane_equation[2] * vertical_plane_equatione[2]) / \
+            abs(plane_equation[0] * vertical_plane_equation[0] + \
+                 plane_equation[1] * vertical_plane_equation[1] + \
+                 plane_equation[2] * vertical_plane_equation[2]) / \
             math.sqrt(
                 (math.pow(plane_equation[0], 2) + \
                     math.pow(plane_equation[1], 2) + \
                     math.pow(plane_equation[2], 2)) * \
-                (math.pow(vertical_plane_equatione[0], 2) + \
-                    math.pow(vertical_plane_equatione[1], 2) + \
-                    math.pow(vertical_plane_equatione[2], 2))
+                (math.pow(vertical_plane_equation[0], 2) + \
+                    math.pow(vertical_plane_equation[1], 2) + \
+                    math.pow(vertical_plane_equation[2], 2))
         )))
 
     return angle

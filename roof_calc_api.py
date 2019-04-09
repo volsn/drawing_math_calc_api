@@ -4,6 +4,7 @@ import polygon
 import side
 import extras
 import copy
+import math
 
 import pprint
 PP = pprint.PrettyPrinter(indent=2)
@@ -22,8 +23,8 @@ def parse_shapes(shapes):
     for shape in shapes:
         if polygon.is_shape_valid(shape):
             pass
-            #shape['angle'] = polygon.calc_angle(shape)
-            #shape['square'] = polygon.calc_square(shape, shape['angle'])
+            shape['angle'] = polygon.calc_angle(shape)
+            shape['square'] = polygon.calc_square(shape, shape['angle'])
 
     return shapes
 
@@ -41,42 +42,19 @@ def parse_lines(shapes):
 
     lines_to_check = side.check_lines(lines, checked_lines)
 
-    has_cornice_z = False
-    for id in lines_to_check:
-        i = extras.find_element_by_id(id, lines)
-        if lines[i]['type'] == 'cornice':
-            has_cornice_z = True
-
-    if not has_cornice_z:
-        for line in lines:
-            if line['type'] == 'cornice':
-                for point in line['points']:
-                    point['z'] = 0
-        lines_to_check = side.check_lines(lines, checked_lines)
-
-
     while len(lines_to_check) != 0:
 
-        lines_to_check_ = []
-        for id in lines_to_check:
-            i = extras.find_element_by_id(id, lines)
-            if lines[i]['type'] == 'cornice':
-                lines_to_check_.insert(0, lines[i]['id'])
-        for id in lines_to_check:
-            i = extras.find_element_by_id(id, lines)
-            if lines[i]['type'] != 'cornice':
-                lines_to_check_.append(lines[i]['id'])
-        lines_to_check = lines_to_check_
-
+        print(lines_to_check)
 
         for id in lines_to_check:
+
             i = extras.find_element_by_id(id, lines)
             checked_line = side.solve_line(lines[i])
             checked_lines.append(id)
-
             lines[i] = checked_line
 
-            # Set values of points of checked lines to lines that cross with it
+            points = extras.exact_coords(lines)
+
             for line in lines:
                 if line['id'] not in checked_lines:
                     if checked_line['points'][0]['z'] is not None:
@@ -90,7 +68,6 @@ def parse_lines(shapes):
                         if line['points'][1]['id'] == checked_line['points'][1]['id']:
                             line['points'][1] = checked_line['points'][1]
 
-
         lines_to_check = side.check_lines(lines, checked_lines)
 
     # Set values of lines to shapes
@@ -102,6 +79,86 @@ def parse_lines(shapes):
             ])
 
         shape['lines'] = answer
+
+    return shapes
+
+
+def parse_points(shapes):
+
+    lines = list(extras.exact_lines(shapes).values())
+    cornice_points = []
+
+    cornice_height = 0
+
+    # Setting cornice height
+    for line in lines:
+        if line['type'] == 'cornice':
+            for point in line['points']:
+                cornice_points.append(point['id'])
+                if point['z'] is not None:
+                    cornice_height = point['z']
+
+    for line in lines:
+        for point in line['points']:
+            if point['id'] in cornice_points:
+                point['z'] = cornice_height
+
+    for shape in shapes:
+        answer = []
+        for line in shape['lines']:
+            answer.append(lines[
+                extras.find_element_by_id(line['id'], lines)
+            ])
+
+        shape['lines'] = answer
+
+    for shape in shapes:
+        if shape['angle'] is not None:
+
+            not_vertical_line = None
+            vertical_line = None
+
+            for line in shape['lines']:
+                if line['type'] != 'cornice':
+                    not_vertical_line = line
+            for line in shape['lines']:
+                if line['type'] == 'cornice':
+                    vertical_line = line
+
+            x1 = vertical_line['points'][0]['x']
+            y1 = vertical_line['points'][0]['y']
+            x2 = vertical_line['points'][1]['x']
+            y2 = vertical_line['points'][1]['y']
+
+            if not_vertical_line['points'][0]['z'] is None:
+                x3 = not_vertical_line['points'][0]['x']
+                y3 = not_vertical_line['points'][0]['y']
+            else:
+                x3 = not_vertical_line['points'][1]['x']
+                y3 = not_vertical_line['points'][1]['y']
+
+            px = x2 - x1
+            py = y2 - y1
+            dab = px * px + py * py
+
+            u = ((x3 - x1) * px + (y3-y1) * py) / dab
+            x = x1 + u * px
+            y = y1 + u * py
+
+            length_plan = math.sqrt((x3 - x) * (x3 - x) + (y3 - y) * (y3 - y))
+
+            if not_vertical_line['points'][0]['z'] is None:
+                not_vertical_line['points'][0]['z'] = length_plan * math.tan(math.radians(shape['angle'])) + \
+                                                      not_vertical_line['points'][1]['z']
+            else:
+                not_vertical_line['points'][1]['z'] = length_plan * math.tan(math.radians(shape['angle'])) + \
+                                                      not_vertical_line['points'][0]['z']
+
+            for line in lines:
+                if line['id'] == not_vertical_line['id']:
+                    lines[
+                        extras.find_element_by_id(line['id'], lines)
+                    ] = not_vertical_line
 
     return shapes
 
@@ -121,6 +178,7 @@ def calc_real_length(shapes_orig, shapes_solved):
             id = line['id']
             line_num = extras.find_element_by_id(id, lines_solved)
             koefficient = line['length_plan'] / lines_solved[line_num]['length_plan']
+
 
     for line in lines_solved:
         line['length_real'] *= koefficient
@@ -143,8 +201,9 @@ class Index(Resource):
     def post(self):
         json = request.json
         original = copy.deepcopy(json['shapes'])
+        json['shapes'] = parse_points(json['shapes'])
         json['shapes'] = parse_lines(json['shapes'])
-        json['shapes'] = parse_shapes(json['shapes'])
+        #json['shapes'] = parse_shapes(json['shapes'])
         json['shapes'] = calc_real_length(original, json['shapes'])
         return jsonify(json)
 
@@ -155,4 +214,4 @@ class Index(Resource):
 api.add_resource(Index, '/')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port='2345')
