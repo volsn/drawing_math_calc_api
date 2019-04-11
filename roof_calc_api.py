@@ -22,10 +22,9 @@ def parse_shapes(shapes):
 
     for shape in shapes:
         if polygon.is_shape_valid(shape):
-            pass
-            shape['angle'] = polygon.calc_angle(shape)
+            if shape['angle'] is None:
+                shape['angle'] = polygon.calc_angle(shape)
             shape['square'] = polygon.calc_square(shape, shape['angle'])
-
     return shapes
 
 
@@ -185,6 +184,9 @@ def calc_real_length(shapes_orig, shapes_solved):
         line['length_plan'] *= koefficient
 
 
+    # Set koefficient to calculate real shapes lengths
+    koefficient = koefficient * koefficient
+
     for shape in shapes_solved:
         answer = []
         for line in shape['lines']:
@@ -193,6 +195,9 @@ def calc_real_length(shapes_orig, shapes_solved):
             ])
 
         shape['lines'] = answer
+
+        if shape['square'] is not None:
+            shape['square'] *= koefficient
 
     return shapes_solved
 
@@ -203,7 +208,7 @@ class Index(Resource):
         original = copy.deepcopy(json['shapes'])
         json['shapes'] = parse_points(json['shapes'])
         json['shapes'] = parse_lines(json['shapes'])
-        #json['shapes'] = parse_shapes(json['shapes'])
+        json['shapes'] = parse_shapes(json['shapes'])
         json['shapes'] = calc_real_length(original, json['shapes'])
         return jsonify(json)
 
@@ -214,4 +219,4 @@ class Index(Resource):
 api.add_resource(Index, '/')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port='2345')
+    app.run(debug=True, host='127.0.0.1', port='5000')

@@ -72,20 +72,17 @@ def calc_angle(shape):
 
     for line in lines:
         if line['type'] == 'cornice':
-            plane_coords.append(line['points'][0])
-            plane_coords.append(line['points'][1])
+            plane_coords.append(line['points'][0].copy())
+            plane_coords.append(line['points'][1].copy())
             break
 
     for line in lines:
         if line['type'] == 'skate':
-            print(line['points'][0]['z'], line['points'][1]['z'])
             if line['points'][0]['z'] > line['points'][1]['z']:
                 print('bar')
-                plane_coords.append(line['points'][0])
+                plane_coords.append(line['points'][0].copy())
             else:
-
-
-                plane_coords.append(line['points'][1])
+                plane_coords.append(line['points'][1].copy())
             break
 
     plane_equation = _build_plane_equation(plane_coords)
