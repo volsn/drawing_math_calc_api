@@ -9,7 +9,7 @@ def _check_line(line):
     :return: bool
     """
 
-    if line['type'] == 'skate' or line['type'] == 'endova':
+    if line['type'] == 'edge' or line['type'] == 'endova':
 
         # Line has an angle
         if line['angle'] is not None:
@@ -24,7 +24,7 @@ def _check_line(line):
         if line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
             return True
 
-    elif line['type'] == 'edge':
+    elif line['type'] == 'skate':
 
         # Line has all the coordinates
         for point in line['points']:
@@ -72,7 +72,7 @@ def solve_line(line):
     :return: dict
     """
 
-    if line['type'] == 'skate' or line['type'] == 'endova':
+    if line['type'] == 'edge' or line['type'] == 'endova':
 
         line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
                                         math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
@@ -105,7 +105,7 @@ def solve_line(line):
 
         line['length_real'] = line['length_plan']
 
-    elif line['type'] == 'edge':
+    elif line['type'] == 'skate':
 
         line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
                                         math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))

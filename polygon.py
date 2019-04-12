@@ -77,7 +77,7 @@ def calc_angle(shape):
             break
 
     for line in lines:
-        if line['type'] == 'skate':
+        if line['type'] == 'edge':
             if line['points'][0]['z'] > line['points'][1]['z']:
                 print('bar')
                 plane_coords.append(line['points'][0].copy())

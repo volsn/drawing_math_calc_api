@@ -178,6 +178,13 @@ def calc_real_length(shapes_orig, shapes_solved):
             line_num = extras.find_element_by_id(id, lines_solved)
             koefficient = line['length_plan'] / lines_solved[line_num]['length_plan']
 
+    if koefficient == 1:
+        for shape in shapes_orig:
+            if shape['square'] is not None:
+                id = shape['id']
+                shape_num = extras.find_element_by_id(id, shapes_solved)
+                koefficient = math.sqrt(shape['square'] / shapes_solved[shape_num]['square'])
+                break
 
     for line in lines_solved:
         line['length_real'] *= koefficient
