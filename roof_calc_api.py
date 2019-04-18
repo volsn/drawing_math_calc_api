@@ -5,11 +5,13 @@ import side
 import extras
 import copy
 import math
+from flask_cors import CORS
 
 import pprint
 PP = pprint.PrettyPrinter(indent=2)
 
 app = Flask(__name__)
+cors = CORS(app)
 api = Api(app)
 
 
