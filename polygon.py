@@ -76,14 +76,19 @@ def calc_angle(shape):
             plane_coords.append(line['points'][1].copy())
             break
 
+    is_edge = False
     for line in lines:
         if line['type'] == 'edge':
             if line['points'][0]['z'] > line['points'][1]['z']:
-                print('bar')
                 plane_coords.append(line['points'][0].copy())
             else:
                 plane_coords.append(line['points'][1].copy())
+            is_edge = True
             break
+
+    # Lack of edge lines means that the shape is horizontal
+    if not is_edge:
+        return 0
 
     plane_equation = _build_plane_equation(plane_coords)
 
