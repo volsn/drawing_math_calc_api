@@ -15,6 +15,25 @@ app = Flask(__name__)
 api = Api(app)
 
 
+def parse_holes(shapes):
+
+    for shape in shapes:
+        if shape['is_hole'] == True:
+            for line in shapes['line']:
+
+                    line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+                    line['length_real'] = line['length_plan']
+
+            shape[square] = polygon.calc_square(shape, angle=0)
+
+    return shapes
+
+
+def parse_min_shapes(shapes):
+
+
+
 def parse_shapes(shapes):
     """
     Function that parses shape array fulfilling all the data about shpape where it is possible
@@ -23,7 +42,7 @@ def parse_shapes(shapes):
     """
 
     for shape in shapes:
-        if polygon.is_shape_valid(shape):
+        if polygon.is_shape_valid(shape) and shape['is_hole'] != False:
             if shape['angle'] is None:
                 shape['angle'] = polygon.calc_angle(shape)
             shape['square'] = polygon.calc_square(shape, shape['angle'])
@@ -45,10 +64,7 @@ def parse_lines(shapes):
 
     while len(lines_to_check) != 0:
 
-        for l in lines:
-            if l['type'] != 'cornice' and l['id'] in lines_to_check:
-                print(l['id'])
-        print('\n')
+        print(lines_to_check)
 
         for id in lines_to_check:
 
@@ -214,14 +230,29 @@ def calc_real_length(shapes_orig, shapes_solved):
     return shapes_solved
 
 
+def _is_shapes_valid(shapes):
+
+    for shape in shapes:
+        if shape['angle'] is not None:
+            return True
+
+    return False
+
+
 class Index(Resource):
     def post(self):
         json = request.json
         original = copy.deepcopy(json['shapes'])
         json['shapes'] = parse_points(json['shapes'])
-        #json['shapes'] = parse_lines(json['shapes'])
-        #json['shapes'] = parse_shapes(json['shapes'])
-        #json['shapes'] = calc_real_length(original, json['shapes'])
+        json['shapes'] = parse_lines(json['shapes'])
+        json['shapes'] = parse_holes(json['shapes'])
+
+        if _is_shapes_valid(json['shapes']):
+            json['shapes'] = parse_shapes(json['shapes'])
+        else:
+            json['shapes'] = parse_min_shapes(json['shapes'])
+
+        json['shapes'] = calc_real_length(original, json['shapes'])
         return jsonify(json)
 
     def get(self):
