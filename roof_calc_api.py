@@ -5,13 +5,13 @@ import side
 import extras
 import copy
 import math
-from flask_cors import CORS
+#from flask_cors import CORS
 
 import pprint
 PP = pprint.PrettyPrinter(indent=2)
 
 app = Flask(__name__)
-cors = CORS(app)
+#cors = CORS(app)
 api = Api(app)
 
 
@@ -45,7 +45,10 @@ def parse_lines(shapes):
 
     while len(lines_to_check) != 0:
 
-        print(lines_to_check)
+        for l in lines:
+            if l['type'] != 'cornice' and l['id'] in lines_to_check:
+                print(l['id'])
+        print('\n')
 
         for id in lines_to_check:
 
@@ -216,9 +219,9 @@ class Index(Resource):
         json = request.json
         original = copy.deepcopy(json['shapes'])
         json['shapes'] = parse_points(json['shapes'])
-        json['shapes'] = parse_lines(json['shapes'])
-        json['shapes'] = parse_shapes(json['shapes'])
-        json['shapes'] = calc_real_length(original, json['shapes'])
+        #json['shapes'] = parse_lines(json['shapes'])
+        #json['shapes'] = parse_shapes(json['shapes'])
+        #json['shapes'] = calc_real_length(original, json['shapes'])
         return jsonify(json)
 
     def get(self):
