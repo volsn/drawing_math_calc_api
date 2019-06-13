@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
 import polygon
@@ -5,20 +6,20 @@ import side
 import extras
 import copy
 import math
-#from flask_cors import CORS
+from flask_cors import CORS
 
 import pprint
 PP = pprint.PrettyPrinter(indent=2)
 
 app = Flask(__name__)
-#cors = CORS(app)
+cors = CORS(app)
 api = Api(app)
 
 
 def parse_holes(shapes):
 
     for shape in shapes:
-        if shape['is_hole'] == True:
+        if shape['isHole'] == True:
             for line in shapes['line']:
 
                     line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
@@ -32,6 +33,11 @@ def parse_holes(shapes):
 
 def parse_min_shapes(shapes):
 
+    for shape in shapes:
+        shape['angle'] = 0
+        shape['square'] = polygon.calc_square(shape, shape['angle'])
+
+    return shapes
 
 
 def parse_shapes(shapes):
@@ -42,7 +48,7 @@ def parse_shapes(shapes):
     """
 
     for shape in shapes:
-        if polygon.is_shape_valid(shape) and shape['is_hole'] != False:
+        if polygon.is_shape_valid(shape) and shape['isHole'] != False:
             if shape['angle'] is None:
                 shape['angle'] = polygon.calc_angle(shape)
             shape['square'] = polygon.calc_square(shape, shape['angle'])
@@ -139,10 +145,10 @@ def parse_points(shapes):
             vertical_line = None
 
             for line in shape['lines']:
-                if line['type'] != 'cornice':
+                if line['type'] != 'cornice' and line['type'] != 'gable':
                     not_vertical_line = line
             for line in shape['lines']:
-                if line['type'] == 'cornice':
+                if line['type'] == 'cornice' or line['type'] == 'gable':
                     vertical_line = line
 
             x1 = vertical_line['points'][0]['x']
