@@ -20,13 +20,13 @@ def parse_holes(shapes):
 
     for shape in shapes:
         if shape['isHole'] == True:
-            for line in shapes['line']:
+            for line in shape['lines']:
 
                     line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
                                             math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
                     line['length_real'] = line['length_plan']
 
-            shape[square] = polygon.calc_square(shape, angle=0)
+            shape['square'] = polygon.calc_square(shape, angle=0)
 
     return shapes
 
@@ -193,6 +193,14 @@ def calc_real_length(shapes_orig, shapes_solved):
 
     lines_orig = list(extras.exact_lines(shapes_orig).values())
     lines_solved = list(extras.exact_lines(shapes_solved).values())
+
+    for line in lines_solved:
+        if line['length_plan'] is None:
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+        if line['length_real'] is None:
+            line['length_real'] = line['length_plan']
+
 
     koefficient = 1
     for line in lines_orig:
