@@ -16,7 +16,11 @@ def calc_shapes(shapes):
         else:
 
             if is_valid(shape):
+
                 angle = calc_angle(shape)
+
+                print(angle)
+
                 if angle is False:
                     warning_shapes.append(shape['id'])
                 else:
@@ -56,12 +60,6 @@ def calc_angle(shape):
     is_edge = False
     for line in lines:
         if line['type'] == 'edge' or line['type']  == 'endova':
-            if line['points'][0]['z'] is None:
-                line['points'][0]['z'] = 0
-            elif line['points'][1]['z'] is None:
-                line['points'][1]['z'] = 0
-            else:
-                continue
 
             if line['points'][0]['z'] > line['points'][1]['z']:
                 plane_coords.append(line['points'][0].copy())
