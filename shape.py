@@ -28,6 +28,7 @@ def calc_shapes(shapes):
                     shapes[i]['angle'] = angle
                     square = calc_square(shape, angle)
                     shapes[i]['square'] = square
+
             else:
                 warning_shapes.append(shape['id'])
 
@@ -36,46 +37,52 @@ def calc_shapes(shapes):
 
 def is_valid(shape):
 
-    for line_ in shape['lines']:
-        if not line.is_valid(line_):
-            return False
+    points = 0
+    for point in shape['vertices']:
+        if point['z'] is not None:
+            points += 1
 
-    return True
+    if points >= 3:
+        return True
+    else:
+        return False
 
 
 def calc_angle(shape):
 
     # Extracting three points A, B and C from a plane
     # in order to build the plane`s formula
+
+    points = {}
+
+    for point in shape['vertices']:
+        if point['z'] not in points.keys():
+            points[point['z']] = point['id']
+
+    if len(points) == 2:
+        for point in shape['vertices']:
+            if point['id'] not in points.values() and point['z'] is not None:
+                points['-100500'] = point['id']
+
     lines = list(extras.exact_lines_from_single_shape(shape.copy()).values())
+    all_points = list(extras.exact_coords(lines).values())
 
     plane_coords = []
+    for point in points.values():
+        for point_ in all_points:
+            if point_['id'] == point:
+                plane_coords.append(point_)
 
-    for line in lines:
-        if line['type'] == 'cornice':
-            plane_coords.append(line['points'][0].copy())
-            plane_coords.append(line['points'][1].copy())
-            break
-
-    is_edge = False
-    for line in lines:
-        if line['type'] == 'edge' or line['type']  == 'endova':
-
-            if line['points'][0]['z'] > line['points'][1]['z']:
-                plane_coords.append(line['points'][0].copy())
-            else:
-                plane_coords.append(line['points'][1].copy())
-            is_edge = True
-            break
-
-    # Lack of edge lines means that the shape is horizontal
-    if not is_edge:
+    if len(plane_coords) < 3:
         return False
 
+    plane_coords = plane_coords[:3]
     plane_equation = _build_plane_equation(plane_coords)
 
-    plane_coords[2]['z'] = 0
-    vertical_plane_equation = _build_plane_equation(plane_coords)
+    """print(plane_coords)
+    print(plane_equation)"""
+
+    vertical_plane_equation = [0,0,1,0]
 
     angle = math.degrees(math.acos(
             abs(plane_equation[0] * vertical_plane_equation[0] + \
@@ -119,7 +126,7 @@ def calc_square(shape, angle):
 
     plan_square = abs(sum(plan_square) / 2.)
 
-    real_square = plan_square * math.cos(math.radians(angle))
+    real_square = plan_square / math.cos(math.radians(angle))
     return real_square
 
 
@@ -131,14 +138,10 @@ def _build_plane_equation(points):
         points_.append([])
         points_[i].append(point['x'])
         points_[i].append(point['y'])
-        if point['z'] is None:
-            points_[i].append(0)
-        else:
-            points_[i].append(point['z'])
+        points_[i].append(point['z'])
 
         i += 1
     points = points_
-
 
     C = [None] * 3
 
