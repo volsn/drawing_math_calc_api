@@ -1,5 +1,6 @@
 import math
 import extras
+import line
 
 
 def calc_shapes(shapes):
@@ -14,16 +15,28 @@ def calc_shapes(shapes):
 
         else:
 
-            angle = calc_angle(shape)
-            if angle is False:
-                warning_shapes.append(shape['id'])
-            else:
+            if is_valid(shape):
+                angle = calc_angle(shape)
+                if angle is False:
+                    warning_shapes.append(shape['id'])
+                else:
 
-                shapes[i]['angle'] = angle
-                square = calc_square(shape, angle)
-                shapes[i]['square'] = square
+                    shapes[i]['angle'] = angle
+                    square = calc_square(shape, angle)
+                    shapes[i]['square'] = square
+            else:
+                warning_shapes.append(shape['id'])
 
     return shapes, warning_shapes
+
+
+def is_valid(shape):
+
+    for line_ in shape['lines']:
+        if not line.is_valid(line_):
+            return False
+
+    return True
 
 
 def calc_angle(shape):
@@ -45,8 +58,10 @@ def calc_angle(shape):
         if line['type'] == 'edge' or line['type']  == 'endova':
             if line['points'][0]['z'] is None:
                 line['points'][0]['z'] = 0
-            if line['points'][1]['z'] is None:
+            elif line['points'][1]['z'] is None:
                 line['points'][1]['z'] = 0
+            else:
+                continue
 
             if line['points'][0]['z'] > line['points'][1]['z']:
                 plane_coords.append(line['points'][0].copy())
@@ -96,6 +111,7 @@ def calc_square(shape, angle):
         x = point['x']
         y = point['y']
         coords.append(tuple([x, y]))
+
 
     nbCoordinates = len(coords)
     nbSegment = nbCoordinates - 1

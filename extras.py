@@ -37,14 +37,6 @@ def calc_real_length(shapes_orig, shapes_solved):
     lines_orig = list(exact_lines(shapes_orig).values())
     lines_solved = list(exact_lines(shapes_solved).values())
 
-    for line in lines_solved:
-        if line['length_plan'] is None:
-            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
-                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
-        if line['length_real'] is None:
-            line['length_real'] = line['length_plan']
-
-
     koefficient = 1
     for line in lines_orig:
         if line['length_real'] is not None:
@@ -65,8 +57,10 @@ def calc_real_length(shapes_orig, shapes_solved):
                 break
 
     for line in lines_solved:
-        line['length_real'] *= koefficient
-        line['length_plan'] *= koefficient
+        if line['length_real'] is not None:
+            line['length_real'] *= koefficient
+        if line['length_plan'] is not None:
+            line['length_plan'] *= koefficient
 
 
     # Set koefficient to calculate real shapes lengths
