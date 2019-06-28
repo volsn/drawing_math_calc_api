@@ -28,10 +28,12 @@ class Index(Resource):
         if koefficient == 1:
             warnings['no_koefficient'] = True
 
+        details = extras.calc_roof_detailed(shapes)
 
         result = {}
         result['shapes'] = shapes
         result['warning'] = warnings
+        result['roof_details'] = details
 
         return result
 

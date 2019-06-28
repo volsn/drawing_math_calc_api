@@ -92,24 +92,30 @@ def calc_angle(shape):
     print(plane_coords)
 
     plane_coords = plane_coords[:3]
-    plane_equation = _build_plane_equation(plane_coords)
 
-    vertical_plane_equation = [0,0,1,0]
+    try:
+        plane_equation = _build_plane_equation(plane_coords)
 
-    angle = math.degrees(math.acos(
-            abs(plane_equation[0] * vertical_plane_equation[0] + \
-                 plane_equation[1] * vertical_plane_equation[1] + \
-                 plane_equation[2] * vertical_plane_equation[2]) / \
-            math.sqrt(
-                (math.pow(plane_equation[0], 2) + \
-                    math.pow(plane_equation[1], 2) + \
-                    math.pow(plane_equation[2], 2)) * \
-                (math.pow(vertical_plane_equation[0], 2) + \
-                    math.pow(vertical_plane_equation[1], 2) + \
-                    math.pow(vertical_plane_equation[2], 2))
-        )))
+        vertical_plane_equation = [0,0,1,0]
 
-    return angle
+        angle = math.degrees(math.acos(
+                abs(plane_equation[0] * vertical_plane_equation[0] + \
+                     plane_equation[1] * vertical_plane_equation[1] + \
+                     plane_equation[2] * vertical_plane_equation[2]) / \
+                math.sqrt(
+                    (math.pow(plane_equation[0], 2) + \
+                        math.pow(plane_equation[1], 2) + \
+                        math.pow(plane_equation[2], 2)) * \
+                    (math.pow(vertical_plane_equation[0], 2) + \
+                        math.pow(vertical_plane_equation[1], 2) + \
+                        math.pow(vertical_plane_equation[2], 2))
+            )))
+
+        return angle
+
+    except:
+
+        return False
 
 
 def calc_square(shape, angle):

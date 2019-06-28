@@ -12,6 +12,29 @@ def extract_vertices(shapes):
     return points
 
 
+def calc_roof_detailed(shapes):
+
+    angles_squares = {}
+
+    for shape in shapes:
+        if shape['angle'] is not None and shape['square'] is not None:
+            angles_squares[shape['id']] = [shape['angle'], shape['square']]
+
+    lens_lines = {}
+
+    for shape in shapes:
+        for line in shape['lines']:
+            if line['length_real'] is not None:
+                if line['type'] not in lens_lines.keys():
+                    lens_lines[line['type']] = 0
+
+                lens_lines[line['type']] += line['length_real']
+
+    result = {'shapes': angles_squares, 'lines': lens_lines}
+
+    return result
+
+
 def extract_lines(shapes):
 
     extracted_lines = {}
