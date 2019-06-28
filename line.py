@@ -29,6 +29,15 @@ def calc_lines(shapes):
                 else:
                     warnings_lines[shape['id']] = [line['id']]
 
+    lines = list(extras.extract_lines(shapes).values())
+    points = list(extras.exact_coords(lines).values())
+
+    for i, shape in enumerate(shapes):
+        for j, point in enumerate(shape['vertices']):
+            for solved_point in points:
+                if point['id'] == solved_point['id']:
+                    shapes[i]['vertices'][j]['z'] = solved_point['z']
+
     return shapes, warnings_lines
 
 

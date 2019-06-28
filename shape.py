@@ -19,7 +19,7 @@ def calc_shapes(shapes):
 
                 angle = calc_angle(shape)
 
-                print(angle)
+                #print(angle)
 
                 if angle is False:
                     warning_shapes.append(shape['id'])
@@ -56,25 +56,40 @@ def calc_angle(shape):
     points = {}
 
     for point in shape['vertices']:
-        if point['z'] not in points.keys():
-            points[point['z']] = point['id']
+        if point['z'] not in points.keys() and point['z'] is not None:
+            points[str(point['z'])] = point['id']
 
     if len(points) == 2:
         for point in shape['vertices']:
             if point['id'] not in points.values() and point['z'] is not None:
                 points['-100500'] = point['id']
 
+    print(points)
+
     lines = list(extras.exact_lines_from_single_shape(shape.copy()).values())
     all_points = list(extras.exact_coords(lines).values())
 
     plane_coords = []
-    for point in points.values():
+    for i, point in enumerate(points.values()):
         for point_ in all_points:
             if point_['id'] == point:
-                plane_coords.append(point_)
+
+                if point_['z'] is not None:
+                    plane_coords.append(point_)
+                else:
+                    for point_vert in shape['vertices']:
+                        if point_vert['id'] == point_['id']:
+                            point_['z'] = point_vert['z']
+                            plane_coords.append(point_)
+                            continue
+
+                    return False
+
 
     if len(plane_coords) < 3:
         return False
+
+    print(plane_coords)
 
     plane_coords = plane_coords[:3]
     plane_equation = _build_plane_equation(plane_coords)
