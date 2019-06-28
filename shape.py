@@ -79,9 +79,6 @@ def calc_angle(shape):
     plane_coords = plane_coords[:3]
     plane_equation = _build_plane_equation(plane_coords)
 
-    """print(plane_coords)
-    print(plane_equation)"""
-
     vertical_plane_equation = [0,0,1,0]
 
     angle = math.degrees(math.acos(
@@ -111,22 +108,15 @@ def calc_square(shape, angle):
     lines = list(extras.exact_lines_from_single_shape(shape).values())
     points = list(extras.exact_coords(lines).values())
 
-    coords = []
+    x = []
+    y = []
     for point in points:
-        x = point['x']
-        y = point['y']
-        coords.append(tuple([x, y]))
+        x.append(point['x'])
+        y.append(point['y'])
 
-
-    nbCoordinates = len(coords)
-    nbSegment = nbCoordinates - 1
-
-    plan_square = [(coords[i + 1][0] - coords[i][0]) * (coords[i + 1][1] + coords[i][1]) for i
-         in range(nbSegment)]
-
-    plan_square = abs(sum(plan_square) / 2.)
-
+    plan_square = abs(sum(x[i] * (y[i + 1] - y[i - 1]) for i in range(-1, len(x) - 1))) / 2.0
     real_square = plan_square / math.cos(math.radians(angle))
+
     return real_square
 
 
@@ -154,13 +144,11 @@ def _build_plane_equation(points):
         vectorAC[coord] = points[2][coord] - points[0][coord]
         C[coord] = points[2][coord]
 
-
     # Looking for the normal
     normal = [None] * 3
     normal[0] = vectorAB[1] * vectorAC[2] - vectorAB[2] * vectorAC[1]
     normal[1] = vectorAB[2] * vectorAC[0] - vectorAB[0] * vectorAC[2]
     normal[2] = vectorAB[0] * vectorAC[1] - vectorAB[1] * vectorAC[0]
-
 
     # Building the final plane equation
     equation = [None] * 4
