@@ -10,7 +10,7 @@ def calc_shapes(shapes):
     for i, shape in enumerate(shapes):
         if shape['angle'] is not None:
 
-            square = calc_square(shape, angle)
+            square = calc_square(shape, shape['angle'])
             shapes[i]['square'] = square
 
         else:

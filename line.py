@@ -1,9 +1,85 @@
 import math
 import extras
 
-def calc_lines(shapes):
+def calc_points(shapes):
+
+    warning_points = {}
+
+    for shape in shapes:
+        if shape['angle'] is not None:
+
+            points = shape['vertices']
+
+            cornice_points = []
+            valid_cornise = False
+            cornice_points = []
+
+            for line in shape['lines']:
+                if line['type'] == 'cornice':
+                    if line['points'][0]['z'] is not None and \
+                                line['points'][1]['z'] is not None:
+                        valid_cornise = line
+
+                    for point in line['points']:
+                        cornice_points.append(point['id'])
+
+                if line['type'] == 'gable':
+                    valid_cornise = None
+
+            print('cornice', cornice_points, valid_cornise)
+
+            if valid_cornise is None or not valid_cornise:
+                continue
+
+
+            x1 = valid_cornise['points'][0]['x']
+            y1 = valid_cornise['points'][0]['y']
+            x2 = valid_cornise['points'][1]['x']
+            y2 = valid_cornise['points'][1]['y']
+
+            if x2 - x1 == 0:
+                m = 0
+            else:
+                m = (y2 - y1) / (x2 - x1)
+
+            b = y1 - m * x1
+
+            for line in shape['lines']:
+                for point in line['points']:
+                    if point['id'] not in cornice_points:
+
+                        x3 = point['x']
+                        y3 = point['y']
+
+                        length_plan = abs(y3 + x3 * m + b) / math.sqrt(m * m + 1)
+
+                        print('length plan', length_plan, 'eqation', m, ' ', b)
+
+                        if line['points'][0]['z'] is None:
+                            line['points'][0]['z'] = length_plan * math.tan(math.radians(shape['angle'])) + \
+                                                                  valid_cornise['points'][0]['z']
+                        else:
+                            line['points'][1]['z'] = length_plan * math.tan(math.radians(shape['angle'])) + \
+                                                                  valid_cornise['points'][0]['z']
+
+    return shapes
+
+
+def set_vertices(shapes):
 
     vertices_points = extras.extract_vertices(shapes)
+
+    for i, shape in enumerate(shapes):
+        for j, line in enumerate(shape['lines']):
+            for k, point in enumerate(line['points']):
+                if point['id'] in vertices_points.keys() and point['z'] is None:
+                    shapes[i]['lines'][j]['points'][k]['z'] = vertices_points[point['id']]
+
+    return shapes
+
+
+def calc_lines(shapes):
+
     lines = extras.extract_lines(shapes)
 
     warnings_lines = {}
@@ -13,11 +89,6 @@ def calc_lines(shapes):
             if point['id'] in vertices_points.keys():
                 lines[id]['points'][i]['z'] = vertices_points[point['id']]"""
 
-    for i, shape in enumerate(shapes):
-        for j, line in enumerate(shape['lines']):
-            for k, point in enumerate(line['points']):
-                if point['id'] in vertices_points.keys():
-                    shapes[i]['lines'][j]['points'][k]['z'] = vertices_points[point['id']]
 
     for i, shape in enumerate(shapes):
         for j, line in enumerate(shape['lines']):
