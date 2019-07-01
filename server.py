@@ -19,6 +19,7 @@ class Index(Resource):
         json = request.json
         shapes = json['shapes']
         original = copy.deepcopy(shapes)
+        shapes = line.set_cornice(shapes)
         shapes = line.set_vertices(shapes)
         shapes = line.calc_points(shapes)
         shapes, warnings_lines = line.calc_lines(shapes)

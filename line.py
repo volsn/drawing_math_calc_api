@@ -26,8 +26,6 @@ def calc_points(shapes):
                 if line['type'] == 'gable':
                     valid_cornise = None
 
-            print('cornice', cornice_points, valid_cornise)
-
             if valid_cornise is None or not valid_cornise:
                 continue
 
@@ -53,8 +51,6 @@ def calc_points(shapes):
 
                         length_plan = abs(y3 + x3 * m + b) / math.sqrt(m * m + 1)
 
-                        print('length plan', length_plan, 'eqation', m, ' ', b)
-
                         if line['points'][0]['z'] is None:
                             line['points'][0]['z'] = length_plan * math.tan(math.radians(shape['angle'])) + \
                                                                   valid_cornise['points'][0]['z']
@@ -74,6 +70,37 @@ def set_vertices(shapes):
             for k, point in enumerate(line['points']):
                 if point['id'] in vertices_points.keys() and point['z'] is None:
                     shapes[i]['lines'][j]['points'][k]['z'] = vertices_points[point['id']]
+
+    return shapes
+
+
+def set_cornice(shapes):
+
+    for i, shape in enumerate(shapes):
+
+        valid_cornise = True
+        for line in shape['lines']:
+            if line['type'] == 'gable' or line['type'] == 'roof_fracture':
+                valid_cornise = False
+
+        if valid_cornise:
+
+            cornice_points = []
+            for line in shape['lines']:
+                if line['type'] == 'cornice':
+                    for point in line['points']:
+                        cornice_points.append(point['id'])
+
+            cornice_height = 0
+            for point in shape['vertices']:
+                if point['id'] in cornice_points:
+                    if point['z'] is not None:
+                        cornice_height = point['z']
+                        break
+
+            for j, point in enumerate(shape['vertices']):
+                if point['id'] in cornice_points:
+                    shapes[i]['vertices'][j]['z'] = cornice_height
 
     return shapes
 
@@ -163,10 +190,10 @@ def calc_line(line):
 
     if line['type'] == 'edge' or line['type'] == 'endova':
 
-        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
-                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
-
         if line['angle'] is not None:
+
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
             line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
 
             if line['points'][0]['z'] is None:
@@ -175,6 +202,9 @@ def calc_line(line):
                 line['points'][1]['z'] = line['length_plan'] * math.tan(math.radians(line['angle'])) + line['points'][0]['z']
 
         elif line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
+
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
 
             if line['points'][0]['z'] > line['points'][1]['z']:
                 line['angle'] = abs(math.degrees(math.atan((line['points'][0]['z'] - line['points'][1]['z']) \
@@ -185,6 +215,47 @@ def calc_line(line):
 
                 line['angle'] = abs(math.degrees(math.atan((line['points'][1]['z'] - line['points'][0]['z']) / line['length_plan'])))
                 line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+
+        elif line['length_plan'] is not None and line['length_real'] is not None:
+
+            coefficient = line['length_real'] / line['length_plan']
+
+            line['angle'] = math.degrees(math.acos(line['length_plan'] / line['length_real']))
+
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+
+            line['length_real'] = line['length_plan'] * coefficient
+
+            cornice_height = 0
+            if line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
+
+                if line['points'][0]['z'] < line['points'][1]['z']:
+                    cornice_height = line['points'][0]['z']
+                    line_height = line['length_plan'] * math.tan(line['angle'])
+                    line['points'][1]['z'] = cornice_height + line_height
+                else:
+                    cornice_height = line['points'][1]['z']
+                    line_height = line['length_plan'] * math.tan(line['angle'])
+                    line['points'][0]['z'] = cornice_height + line_height
+
+            elif line['points'][0]['z'] is not None:
+                cornice_height = line['points'][0]['z']
+                line_height = line['length_plan'] * math.tan(line['angle'])
+                line['points'][1]['z'] = cornice_height + line_height
+
+            elif line['points'][1]['z'] is not None:
+                cornice_height = line['points'][1]['z']
+                line_height = line['length_plan'] * math.tan(line['angle'])
+                line['points'][0]['z'] = cornice_height + line_height
+
+            else:
+                return line
+
+
+
+
+
 
     elif line['type'] == 'cornice':
 
