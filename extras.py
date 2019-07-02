@@ -88,6 +88,14 @@ def calc_real_length(shapes_orig, shapes_solved):
         if line['length_plan'] is not None:
             line['length_plan'] *= koefficient
 
+    for line in lines_solved:
+        line_orig = lines_orig[find_element_by_id(line['id'], lines_orig)]
+
+        if line_orig['length_plan'] is not None:
+            line['length_plan'] = line_orig['length_plan']
+        if line_orig['length_real'] is not None:
+            line['length_real'] = line_orig['length_real']
+
 
     # Set koefficient to calculate real shapes lengths
     koefficient = koefficient * koefficient
