@@ -14,11 +14,13 @@ def extract_vertices(shapes):
 
 def calc_roof_detailed(shapes):
 
-    angles_squares = {}
+    angles_squares = []
 
+    i = 0
     for shape in shapes:
         if shape['angle'] is not None and shape['square'] is not None:
-            angles_squares[shape['id']] = [shape['angle'], shape['square']]
+            angles_squares.append({'angle{}:'.format(i): shape['angle'], 'square{}:'.format(i): shape['square']})
+            i += 1
 
     lens_lines = {}
 
