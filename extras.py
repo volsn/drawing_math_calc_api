@@ -33,7 +33,7 @@ def calc_roof_detailed(shapes):
 
                 lens_lines[line['type']] += line['length_real']
 
-    result = {'shapes': angles_squares, 'lines': lens_lines}
+    result = {'squares': angles_squares, 'lengths': lens_lines}
 
     return result
 

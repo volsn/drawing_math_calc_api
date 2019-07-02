@@ -36,7 +36,7 @@ class Index(Resource):
         result = {}
         result['shapes'] = shapes
         result['warning'] = warnings
-        result['roof_details'] = details
+        result['total'] = details
 
         return result
 
