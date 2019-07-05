@@ -21,7 +21,7 @@ class Index(Resource):
         original = copy.deepcopy(shapes)
         shapes = line.set_cornice(shapes)
         shapes = line.set_vertices(shapes)
-        shapes = line.calc_points(shapes)
+        #shapes = line.calc_points(shapes)
         shapes, warnings_lines = line.calc_lines(shapes)
         shapes, warning_shapes = shape.calc_shapes(shapes)
         shapes, koefficient = extras.calc_real_length(original, shapes)
@@ -44,4 +44,4 @@ class Index(Resource):
 api.add_resource(Index, '/')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port='5000')
+    app.run(debug=True, host='127.0.0.1', port='4721')
