@@ -146,10 +146,10 @@ def is_valid(line):
     :return: bool
     """
 
-    if line['length_real'] is not None or line['length_plan'] is not None:
+    if line['type'] == 'edge' or line['type'] == 'endova' or \
+                line['type'] == 'gable' or line['type'] == 'roof_fracture':
 
-        if line['type'] == 'edge' or line['type'] == 'endova' or \
-                    line['type'] == 'gable' or line['type'] == 'roof_fracture':
+        if line['length_real'] is not None or line['length_plan'] is not None:
 
             if line['points'][0]['z'] is not None or line['points'][1]['z'] is not None:
 
