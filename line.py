@@ -119,8 +119,10 @@ def calc_lines(shapes):
 
     for i, shape in enumerate(shapes):
         for j, line in enumerate(shape['lines']):
+            shapes[i]['lines'][j]['line_height'] = None
             if is_valid(line):
                 shapes[i]['lines'][j] = calc_line(line)
+                #shapes = extras.set_points(shapes)
             else:
                 if shape['id'] in warnings_lines.keys():
                     warnings_lines[shape['id']].append(line['id'])
@@ -149,8 +151,6 @@ def is_valid(line):
     if line['type'] == 'edge' or line['type'] == 'endova' or \
                 line['type'] == 'gable' or line['type'] == 'roof_fracture':
 
-        if line['length_real'] is not None or line['length_plan'] is not None:
-
             if line['points'][0]['z'] is not None or line['points'][1]['z'] is not None:
 
                 # Line has all the coordinates
@@ -167,10 +167,8 @@ def is_valid(line):
 
     elif line['type'] == 'skate' or line['type'] == 'cornice':
 
-        if line['length_plan'] is not None or line['length_real'] is not None:
-
-            if line['points'][0]['z'] is not None or line['points'][1]['z'] is not None:
-                return None
+        if line['points'][0]['z'] is not None or line['points'][1]['z'] is not None:
+            return True
 
 
 
@@ -187,102 +185,50 @@ def calc_line(line):
     if line['type'] == 'edge' or line['type'] == 'endova' or \
                 line['type'] == 'gable' or line['type'] == 'roof_fracture':
 
-        if line['angle'] is not None and (line['length_plan'] is not None \
-                        or line['length_real'] is not None):
+        if line['angle']:
 
-            if line['length_real'] is not None:
-                line['length_plan'] = line['length_real'] * math.cos(math.radians(line['angle']))
 
-            elif line['length_plan'] is not None:
-                line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
-
-            if line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
-
-                height = math.abs(line['points'][0]['z'] - line['points'][1]['z'])
-
-                if line['length_real'] is not None:
-
-                    line['angle'] = math.degrees(math.asin(height / line['length_real']))
-                    line['length_plan'] = line['length_real'] * math.cos(math.radians(line['angle']))
-
-                elif line['length_plan'] is not None:
-
-                    line['angle'] = math.degrees(math.acos(height / line['length_plan']))
-                    line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
-
-            elif line['points'][0]['z'] is not None:
-                cornice_height = line['points'][0]['z']
-                line_height = line['length_plan'] * math.tan(line['angle'])
-                line['points'][1]['z'] = cornice_height + line_height
-
-            elif line['points'][1]['z'] is not None:
-                cornice_height = line['points'][1]['z']
-                line_height = line['length_plan'] * math.tan(line['angle'])
-                line['points'][0]['z'] = cornice_height + line_height
-
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+            line['line_height'] = abs(line['length_plan'] * math.tan(line['angle']))
 
         elif line['length_plan'] is not None and line['length_real'] is not None:
 
             line['angle'] = math.degrees(math.acos(line['length_plan'] / line['length_real']))
 
-            cornice_height = 0
-            if line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
-
-                """if line['points'][0]['z'] < line['points'][1]['z']:
-                    cornice_height = line['points'][0]['z']
-                    line_height = line['length_plan'] * math.tan(line['angle'])
-                    line['points'][1]['z'] = cornice_height + line_height
-                else:
-                    cornice_height = line['points'][1]['z']
-                    line_height = line['length_plan'] * math.tan(line['angle'])
-                    line['points'][0]['z'] = cornice_height + line_height"""
-
-                pass
-
-            elif line['points'][0]['z'] is not None:
-                cornice_height = line['points'][0]['z']
-                line_height = line['length_plan'] * math.tan(line['angle'])
-                line['points'][1]['z'] = cornice_height + line_height
-
-            elif line['points'][1]['z'] is not None:
-                cornice_height = line['points'][1]['z']
-                line_height = line['length_plan'] * math.tan(line['angle'])
-                line['points'][0]['z'] = cornice_height + line_height
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+            line['line_height'] = abs(line['length_plan'] * math.tan(line['angle']))
 
 
         elif line['points'][0]['z'] is not None and line['points'][1]['z'] is not None:
 
-            length_plan = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
-                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+            length_real = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2) + \
+                                                math.pow(line['points'][0]['z'] - line['points'][1]['z'], 2))
 
             if line['points'][0]['z'] > line['points'][1]['z']:
-                line['angle'] = abs(math.degrees(math.atan((line['points'][0]['z'] - line['points'][1]['z']) \
-                        / length_plan)))
-                length_real = length_plan / math.cos(math.radians(line['angle']))
-
+                line['angle'] = abs(math.degrees(math.atan2(1, (line['points'][0]['z'] - line['points'][1]['z']) \
+                        / length_real)))
             else:
+                line['angle'] = abs(math.degrees(math.atan2(1, (line['points'][1]['z'] - line['points'][0]['z']) \
+                        / length_real)))
 
-                line['angle'] = abs(math.degrees(math.atan((line['points'][1]['z'] - line['points'][0]['z']) / line['length_plan'])))
-                length_real = length_plan / math.cos(math.radians(line['angle']))
-
-
-            if line['length_plan'] is not None:
-                coefficient = line['length_plan'] / length_plan
-                line['length_real'] = coefficient * length_real
-
-            if line['length_real'] is not None:
-                coefficient = line['length_real'] / length_real
-                line['length_plan'] = coefficient * length_plan
+            line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                            math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+            line['length_real'] = line['length_plan'] / math.cos(math.radians(line['angle']))
+            #line['line_height'] = abs(line['length_plan'] * math.tan(line['angle']))
 
 
     elif line['type'] == 'cornice' or line['type'] == 'skate':
 
         line['angle'] = 0
 
-        if line['length_plan'] is not None:
-            line['length_real'] = line['length_plan']
-        elif line['length_real'] is not None:
-            line['length_plan'] = line['length_real']
+        line['length_plan'] = math.sqrt(math.pow(line['points'][0]['x'] - line['points'][1]['x'], 2) + \
+                                        math.pow(line['points'][0]['y'] - line['points'][1]['y'], 2))
+        line['length_real'] = line['length_plan']
 
         if line['points'][0]['z'] is not None:
             line['points'][1]['z'] = line['points'][0]['z']

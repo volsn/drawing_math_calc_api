@@ -1,4 +1,5 @@
 import math
+import line
 
 def extract_vertices(shapes):
 
@@ -10,6 +11,38 @@ def extract_vertices(shapes):
                 points[point['id']] = point['z']
 
     return points
+
+
+def set_points(shapes):
+
+    vertices = {}
+    points = {}
+
+    for shape in shapes:
+
+        for point in shape['vertices']:
+            vertices[point['id']] = point
+
+        lines = list(exact_lines_from_single_shape(shape).values())
+
+        for line_ in lines:
+            for point in line_['points']:
+                if point['z'] is not None:
+                    points[point['id']] = point['z']
+
+    for id, point_vertice in vertices.items():
+        if point_vertice['z'] is None and point_vertice['id'] in points.keys():
+            point_vertice['z'] = points[point_vertice['id']]
+
+
+    for i, shape in enumerate(shapes):
+        for j, point in enumerate(shape['vertices']):
+            if point['id'] in vertices.keys():
+                shapes[i]['vertices'][j] = vertices[point['id']]['z']
+
+    #shapes = line.set_vertices(shapes)
+
+    return shapes
 
 
 def calc_roof_detailed(shapes):
@@ -57,11 +90,7 @@ def extract_lines(shapes):
                     """
     return extracted_lines
 
-
-def calc_real_length(shapes_orig, shapes_solved):
-
-    lines_orig = list(exact_lines(shapes_orig).values())
-    lines_solved = list(exact_lines(shapes_solved).values())
+def find_koefficient(lines_orig, lines_solved):
 
     koefficient = 1
     for line in lines_orig:
@@ -69,10 +98,56 @@ def calc_real_length(shapes_orig, shapes_solved):
             id = line['id']
             line_num = find_element_by_id(id, lines_solved)
             koefficient = line['length_real'] / lines_solved[line_num]['length_real']
+            break
         elif line['length_plan'] is not None:
             id = line['id']
             line_num = find_element_by_id(id, lines_solved)
             koefficient = line['length_plan'] / lines_solved[line_num]['length_plan']
+            break
+
+    return koefficient
+
+
+def set_heights(shapes_orig, shapes):
+
+    lines_orig = list(exact_lines(shapes_orig).values())
+    lines_solved = list(exact_lines(shapes).values())
+
+    koefficient = find_koefficient(lines_orig, lines_solved)
+
+    for line in lines_orig:
+
+        line_id = find_element_by_id(line['id'], lines_solved)
+        line_solved = lines_solved[line_id]
+
+        if line_solved['line_height'] is not None:
+            if line['points'][0]['z'] is not None and line['points'][1]['z'] is None:
+                line['points'][1]['z'] = line['points'][0]['z'] \
+                        + line_solved['line_height'] * koefficient
+
+            elif line['points'][1]['z'] is not None and line['points'][0]['z'] is None:
+                line['points'][0]['z'] = line['points'][1]['z'] \
+                        + line_solved['line_height'] * koefficient
+
+
+    for shape in shapes:
+        answer = []
+        for line in shape['lines']:
+            answer.append(lines_solved[
+                find_element_by_id(line['id'], lines_solved)
+            ])
+
+        shape['lines'] = answer
+
+    return shapes
+
+
+def calc_real_length(shapes_orig, shapes_solved):
+
+    lines_orig = list(exact_lines(shapes_orig).values())
+    lines_solved = list(exact_lines(shapes_solved).values())
+
+    koefficient = find_koefficient(lines_orig, lines_solved)
 
     if koefficient == 1:
         for shape in shapes_orig:
@@ -82,19 +157,18 @@ def calc_real_length(shapes_orig, shapes_solved):
                 koefficient = math.sqrt(shape['square'] / shapes_solved[shape_num]['square'])
                 break
 
-    for line in lines_solved:
-        if line['length_real'] is not None:
-            line['length_real'] *= koefficient
-        if line['length_plan'] is not None:
-            line['length_plan'] *= koefficient
 
-    for line in lines_solved:
-        line_orig = lines_orig[find_element_by_id(line['id'], lines_orig)]
+    for line in lines_orig:
+        line_id = find_element_by_id(line['id'], lines_solved)
+        line_solved = lines_solved[line_id]
 
-        if line_orig['length_plan'] is not None:
-            line['length_plan'] = line_orig['length_plan']
-        if line_orig['length_real'] is not None:
-            line['length_real'] = line_orig['length_real']
+        if line['length_plan'] is None and line_solved['length_plan'] is not None:
+            line_solved['length_plan'] = line_solved['length_plan'] * koefficient
+        if line['length_real'] is None and line_solved['length_real'] is not None:
+            line_solved['length_real'] = line_solved['length_real'] * koefficient
+
+        if line['angle'] is None:
+            line['angle'] = line_solved['angle']
 
 
     # Set koefficient to calculate real shapes lengths
@@ -113,21 +187,6 @@ def calc_real_length(shapes_orig, shapes_solved):
             shape['square'] *= koefficient
 
     return shapes_solved, koefficient
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def exact_coords(lines):

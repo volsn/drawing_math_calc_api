@@ -21,8 +21,9 @@ class Index(Resource):
         original = copy.deepcopy(shapes)
         shapes = line.set_cornice(shapes)
         shapes = line.set_vertices(shapes)
-        #shapes = line.calc_points(shapes)
+        shapes = line.calc_points(shapes)
         shapes, warnings_lines = line.calc_lines(shapes)
+        shapes = extras.set_heights(original, shapes)
         shapes, warning_shapes = shape.calc_shapes(shapes)
         shapes, koefficient = extras.calc_real_length(original, shapes)
 
@@ -37,6 +38,7 @@ class Index(Resource):
         result['shapes'] = shapes
         result['warning'] = warnings
         result['total'] = details
+        result['total']['coefficient'] = koefficient
 
         return result
 
